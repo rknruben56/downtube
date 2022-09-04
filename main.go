@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -29,9 +30,14 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	vID := r.URL.Query().Get("videoId")
+	if vID == "" {
+		log.Fatal("Empty video ID")
+	}
+
 	dBuff := &bytes.Buffer{}
 	goutubedl.Path = "yt-dlp"
-	result, err := goutubedl.New(context.Background(), "https://www.youtube.com/watch?v=vSffKUyr0lk", goutubedl.Options{})
+	result, err := goutubedl.New(context.Background(), buildYtURL(vID), goutubedl.Options{})
 	downloadResult, err := result.Download(context.Background(), "best")
 	if err != nil {
 		log.Fatal(err)
@@ -54,4 +60,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(mBuff.Bytes())
+}
+
+func buildYtURL(videoID string) string {
+	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 }
