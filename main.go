@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	fluentffmpeg "github.com/modfy/fluent-ffmpeg"
 	"github.com/wader/goutubedl"
 )
 
@@ -41,5 +42,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	w.Write(dBuff.Bytes())
+	mBuff := &bytes.Buffer{}
+	err = fluentffmpeg.
+		NewCommand("").
+		PipeInput(dBuff).
+		OutputFormat("mp3").
+		PipeOutput(mBuff).
+		Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Write(mBuff.Bytes())
 }
