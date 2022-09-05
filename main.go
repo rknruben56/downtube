@@ -1,20 +1,22 @@
+// Package main starts the web server
 package main
 
 import (
 	"bytes"
-	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 
 	fluentffmpeg "github.com/modfy/fluent-ffmpeg"
-	"github.com/wader/goutubedl"
+	"github.com/rknruben56/downtube/download"
 )
+
+var downloader download.Downloader
 
 func main() {
 	log.Print("starting server...")
+	initComponents()
 	http.HandleFunc("/download", handler)
 
 	port := os.Getenv("PORT")
@@ -32,20 +34,16 @@ func main() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	vID := r.URL.Query().Get("videoId")
 	if vID == "" {
-		log.Fatal("Empty video ID")
+		err := fmt.Errorf("Invalid video ID: %s", vID)
+		handleError(w, http.StatusBadRequest, err)
+		return
 	}
 
-	dBuff := &bytes.Buffer{}
-	goutubedl.Path = "yt-dlp"
-	result, err := goutubedl.New(context.Background(), buildYtURL(vID), goutubedl.Options{})
-	downloadResult, err := result.Download(context.Background(), "best")
+	dBuff, err := downloader.Download(vID)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = io.Copy(dBuff, downloadResult)
-	if err != nil {
-		log.Fatal(err)
+		err = fmt.Errorf("Error downloading video: %s", err)
+		handleError(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	mBuff := &bytes.Buffer{}
@@ -62,6 +60,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(mBuff.Bytes())
 }
 
-func buildYtURL(videoID string) string {
-	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
+func initComponents() {
+	downloader = &download.YTDownloader{Path: "yt-dlp"}
+}
+
+func handleError(w http.ResponseWriter, status int, err error) {
+	log.Println(err)
+	w.WriteHeader(status)
+	w.Write([]byte(err.Error()))
 }
