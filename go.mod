@@ -3,6 +3,7 @@ module github.com/rknruben56/downtube
 go 1.19
 
 require (
+	github.com/golang/mock v1.6.0
 	github.com/modfy/fluent-ffmpeg v0.1.0
 	github.com/wader/goutubedl v0.0.0-20220901162619-d010f4f9dd00
 )
