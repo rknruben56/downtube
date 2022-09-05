@@ -2,17 +2,17 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	fluentffmpeg "github.com/modfy/fluent-ffmpeg"
 	"github.com/rknruben56/downtube/download"
+	"github.com/rknruben56/downtube/transcode"
 )
 
 var downloader download.Downloader
+var transcoder transcode.Transcoder
 
 func main() {
 	log.Print("starting server...")
@@ -46,22 +46,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mBuff := &bytes.Buffer{}
-	err = fluentffmpeg.
-		NewCommand("").
-		PipeInput(dBuff).
-		OutputFormat("mp3").
-		PipeOutput(mBuff).
-		Run()
+	tBuff, err := transcoder.Transcode(dBuff)
 	if err != nil {
-		log.Fatal(err)
+		err = fmt.Errorf("Error transcoding video: %s", err)
+		handleError(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	w.Write(mBuff.Bytes())
+	w.Write(tBuff.Bytes())
 }
 
 func initComponents() {
 	downloader = &download.YTDownloader{Path: "yt-dlp"}
+	transcoder = &transcode.MP3Transcoder{}
 }
 
 func handleError(w http.ResponseWriter, status int, err error) {

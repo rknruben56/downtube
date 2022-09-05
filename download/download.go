@@ -33,11 +33,7 @@ func (d *YTDownloader) Download(videoID string) (*bytes.Buffer, error) {
 	}
 
 	_, err = io.Copy(b, downloadResult)
-	if err != nil {
-		return b, err
-	}
-
-	return b, nil
+	return b, err
 }
 
 func buildYTURL(videoID string) string {
