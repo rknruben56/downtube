@@ -18,7 +18,6 @@ func main() {
 	log.Print("starting server...")
 	initComponents()
 	http.HandleFunc("/download", downloadHandler)
-	http.HandleFunc("/info", infoHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -40,39 +39,22 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dBuff, err := downloader.Download(vID)
+	dResult, err := downloader.Download(vID)
 	if err != nil {
 		err = fmt.Errorf("Error downloading video: %s", err)
 		handleError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	tBuff, err := transcoder.Transcode(dBuff)
+	tBuff, err := transcoder.Transcode(dResult.Content)
 	if err != nil {
 		err = fmt.Errorf("Error transcoding video: %s", err)
 		handleError(w, http.StatusInternalServerError, err)
 		return
 	}
 
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", dResult.Title))
 	w.Write(tBuff.Bytes())
-}
-
-func infoHandler(w http.ResponseWriter, r *http.Request) {
-	vID := r.URL.Query().Get("videoId")
-	if vID == "" {
-		err := fmt.Errorf("Invalid video ID: %s", vID)
-		handleError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	result, err := downloader.GetInfo(vID)
-	if err != nil {
-		err = fmt.Errorf("Error getting video info: %s", err)
-		handleError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.Write([]byte(result.Info.Title))
 }
 
 func initComponents() {

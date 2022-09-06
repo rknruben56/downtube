@@ -18,27 +18,22 @@ type YTDownloader struct {
 
 // Download downloads the video from YouTube and returns a populated Buffer if there
 // are no errors
-func (d *YTDownloader) Download(videoID string) (*bytes.Buffer, error) {
+func (d *YTDownloader) Download(videoID string) (Result, error) {
 	b := &bytes.Buffer{}
 	goutubedl.Path = d.Path
 
-	result, err := d.GetInfo(videoID)
+	result, err := goutubedl.New(context.Background(), buildYTURL(videoID), goutubedl.Options{})
 	if err != nil {
-		return b, nil
+		return Result{}, nil
 	}
 
 	downloadResult, err := result.Download(context.Background(), downloadQuality)
 	if err != nil {
-		return b, nil
+		return Result{}, nil
 	}
 
 	_, err = io.Copy(b, downloadResult)
-	return b, err
-}
-
-// GetInfo returns the metadata of the YouTube Video
-func (d *YTDownloader) GetInfo(videoID string) (goutubedl.Result, error) {
-	return goutubedl.New(context.Background(), buildYTURL(videoID), goutubedl.Options{})
+	return Result{Title: result.Info.Title, Content: b}, err
 }
 
 func buildYTURL(videoID string) string {
