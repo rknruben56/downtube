@@ -39,7 +39,6 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, http.StatusBadRequest, err)
 		return
 	}
-	log.Printf("Received download request for %s", vID)
 
 	dBuff, err := downloader.Download(vID)
 	if err != nil {
@@ -65,7 +64,6 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, http.StatusBadRequest, err)
 		return
 	}
-	log.Printf("Received info request for %s", vID)
 
 	result, err := downloader.GetInfo(vID)
 	if err != nil {
