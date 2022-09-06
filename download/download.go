@@ -22,7 +22,7 @@ func (d *YTDownloader) Download(videoID string) (*bytes.Buffer, error) {
 	b := &bytes.Buffer{}
 	goutubedl.Path = d.Path
 
-	result, err := goutubedl.New(context.Background(), buildYTURL(videoID), goutubedl.Options{})
+	result, err := d.GetInfo(videoID)
 	if err != nil {
 		return b, nil
 	}
@@ -34,6 +34,11 @@ func (d *YTDownloader) Download(videoID string) (*bytes.Buffer, error) {
 
 	_, err = io.Copy(b, downloadResult)
 	return b, err
+}
+
+// GetInfo returns the metadata of the YouTube Video
+func (d *YTDownloader) GetInfo(videoID string) (goutubedl.Result, error) {
+	return goutubedl.New(context.Background(), buildYTURL(videoID), goutubedl.Options{})
 }
 
 func buildYTURL(videoID string) string {

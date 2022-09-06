@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	goutubedl "github.com/wader/goutubedl"
 )
 
 // MockDownloader is a mock of Downloader interface.
@@ -47,4 +48,19 @@ func (m *MockDownloader) Download(videoID string) (*bytes.Buffer, error) {
 func (mr *MockDownloaderMockRecorder) Download(videoID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockDownloader)(nil).Download), videoID)
+}
+
+// GetInfo mocks base method.
+func (m *MockDownloader) GetInfo(videoID string) (goutubedl.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetInfo", videoID)
+	ret0, _ := ret[0].(goutubedl.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInfo indicates an expected call of GetInfo.
+func (mr *MockDownloaderMockRecorder) GetInfo(videoID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInfo", reflect.TypeOf((*MockDownloader)(nil).GetInfo), videoID)
 }
