@@ -75,6 +75,6 @@ func handleError(w http.ResponseWriter, status int, err error) {
 func addCORSHeader(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
 	if origin == "http://localhost:8000" || origin == "https://downtubenow.net" {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
 }
