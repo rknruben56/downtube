@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/rknruben56/downtube/download"
 	"github.com/rknruben56/downtube/transcode"
@@ -53,7 +54,10 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	addCORSHeader(w, r)
+	w.Header().Set("Content-type", "application/octet-stream; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", dResult.Title))
+	w.Header().Set("Content-Length", strconv.Itoa(len(tBuff.Bytes())))
 	w.Write(tBuff.Bytes())
 }
 
@@ -66,4 +70,11 @@ func handleError(w http.ResponseWriter, status int, err error) {
 	log.Println(err)
 	w.WriteHeader(status)
 	w.Write([]byte(err.Error()))
+}
+
+func addCORSHeader(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	if origin == "http://localhost:8000" || origin == "https://downtubenow.net" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+	}
 }
