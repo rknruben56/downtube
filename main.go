@@ -75,7 +75,7 @@ func initComponents() {
 	downloader = &download.YTDownloader{Path: "yt-dlp"}
 	transcoder = &transcode.MP3Transcoder{}
 	uploader = &upload.AWSUploader{
-		Bucket: os.Getenv("S3_BUCKET"),
+		Bucket: os.Getenv("downtube-bucket"),
 		Config: aws.Config{
 			Region: aws.String(os.Getenv("AWS_DEFAULT_REGION")),
 		},
