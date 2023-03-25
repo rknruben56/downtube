@@ -2,18 +2,23 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rknruben56/downtube/download"
 	"github.com/rknruben56/downtube/transcode"
+	"github.com/rknruben56/downtube/upload"
 )
 
-var downloader download.Downloader
-var transcoder transcode.Transcoder
+var (
+	downloader download.Downloader
+	transcoder transcode.Transcoder
+	uploader   upload.Uploader
+)
 
 func main() {
 	log.Print("starting server...")
@@ -54,16 +59,27 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	url, err := uploader.Upload(dResult.Title, tBuff)
+	if err != nil {
+		err = fmt.Errorf("S3 error: %s", err)
+		handleError(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	addCORSHeader(w, r)
-	w.Header().Set("Content-type", "application/octet-stream; charset=utf-8")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", dResult.Title))
-	w.Header().Set("Content-Length", strconv.Itoa(len(tBuff.Bytes())))
-	w.Write(tBuff.Bytes())
+	w.Header().Set("Content-type", "application/json")
+	json.NewEncoder(w).Encode(Response{URL: url})
 }
 
 func initComponents() {
 	downloader = &download.YTDownloader{Path: "yt-dlp"}
 	transcoder = &transcode.MP3Transcoder{}
+	uploader = &upload.AWSUploader{
+		Bucket: os.Getenv("S3_BUCKET"),
+		Config: aws.Config{
+			Region: aws.String(os.Getenv("AWS_DEFAULT_REGION")),
+		},
+	}
 }
 
 func handleError(w http.ResponseWriter, status int, err error) {
