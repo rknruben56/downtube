@@ -25,7 +25,7 @@ const timeout = 15
 func (u *AWSUploader) Upload(title string, buffer *bytes.Buffer) (string, error) {
 	sess, err := session.NewSession(&u.Config)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	key := keyPrefix + title
