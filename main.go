@@ -24,6 +24,7 @@ func main() {
 	log.Print("starting server...")
 	initComponents()
 	http.HandleFunc("/download", downloadHandler)
+	http.HandleFunc("/", defaultHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -35,6 +36,10 @@ func main() {
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Downtube!")
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
